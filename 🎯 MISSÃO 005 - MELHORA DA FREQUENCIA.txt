@@ -1,0 +1,278 @@
+🎯 MISSÃO 005 - MELHORA DA FREQUENCIA
+Sprint 05 - Quem Pode Entrar no Sistema?
+📖 CONTEXTO
+
+O sistema da escola já consegue:
+
+✅ Cadastrar alunos
+
+✅ Organizar turmas
+
+✅ Registrar notas
+
+✅ Controlar frequência
+
+Mas até agora qualquer pessoa consegue abrir o sistema e mexer em tudo.
+
+A direção percebeu um novo risco: cada professor deveria enxergar e lançar apenas
+o que é da sua disciplina, não o sistema inteiro.
+
+Sua Software House recebeu uma nova solicitação:
+
+"Precisamos que cada professor faça login e, ao entrar, veja somente a chamada
+da disciplina que ele leciona. Nenhum professor pode mexer na chamada de outra
+matéria."
+
+🎯 MISSÃO
+
+Criar o módulo de login e controle de acesso, e usar esse login para liberar a
+tela de chamada de cada professor.
+
+O sistema deverá permitir:
+
+✅ Login do professor (usuário e senha)
+
+✅ Vincular o professor logado à(s) disciplina(s) que ele leciona
+
+✅ Exibir, após o login, a tela de chamada apenas da disciplina do professor
+
+✅ Bloquear o acesso de quem não estiver logado
+
+👥 RESPONSABILIDADES DO SQUAD
+🎨 Desenvolvedor Front-End
+
+Criar uma tela de login contendo:
+
+Campos:
+
+Usuário
+Senha
+Botão Entrar
+
+Após o login, criar a tela de "Fazer Chamada" do professor, contendo:
+
+Campos do cabeçalho da chamada:
+
+Turma (relacionada à disciplina do professor logado)
+Disciplina (preenchida automaticamente pelo professor logado)
+Data da aula
+Quantidade de aulas
+Título do plano de aula
+
+Lista de alunos da turma/disciplina:
+
+Cada aluno aparece em uma linha
+Ao lado de cada aluno, um checkbox de falta para CADA aula lançada
+  (se a quantidade de aulas for 2, o aluno tem 2 checkboxes; se for 3,
+  tem 3 checkboxes — um checkbox marcado registra falta naquela aula)
+Botão Salvar Chamada
+
+⚙️ Desenvolvedor Back-End
+
+Criar estrutura para autenticação simples:
+
+Usuário (professor)
+Senha
+Disciplina(s) vinculada(s)
+
+Deve permitir:
+
+Validar login
+Identificar qual professor está logado
+Filtrar a chamada pela disciplina do professor logado
+Registrar uma falta por aula (não apenas uma falta por dia)
+Impedir que o professor lance chamada de disciplina que não é dele
+
+🗄️ Desenvolvedor Banco de Dados
+
+Criar a modelagem:
+
+PROFESSORES
+id
+nome
+usuario
+senha
+disciplina_id (ou tabela de vínculo, se o professor tiver mais de uma disciplina)
+
+Relacionamento:
+
+Professor
+↓
+Leciona
+↓
+Uma ou mais Disciplinas
+
+A frequência já registrada (turma, disciplina, data, plano de aula, quantidade
+de aulas) deve passar a guardar também qual aula específica cada falta pertence,
+quando a quantidade de aulas for maior que 1.
+
+Criar o diagrama atualizado.
+
+🧪 Desenvolvedor QA
+
+Criar checklist:
+
+Validação
+
+✅ Login com usuário e senha corretos funciona
+
+✅ Login com usuário/senha errados é bloqueado
+
+✅ Professor só enxerga a disciplina dele
+
+✅ Tela de chamada exibe todos os alunos da turma
+
+✅ Quantidade de checkboxes por aluno é igual à quantidade de aulas informada
+
+✅ Cada checkbox marcado gera uma falta na aula correspondente
+
+✅ Sem acesso à chamada sem login
+
+📋 Scrum Master
+
+Responsável por:
+
+Controlar a Sprint
+Organizar entregas
+Garantir integração do projeto
+Coordenar a apresentação
+🏆 CRITÉRIOS DE VITÓRIA
+
+O Squad deverá apresentar:
+
+✅ Tela de login
+
+✅ Tela de chamada exclusiva do professor logado
+
+✅ Checkbox de falta por aula (um por aula lançada)
+
+✅ Modelo de banco de dados atualizado
+
+✅ Checklist de testes
+
+✅ Apresentação final
+
+💡 DICAS PROGRESSIVAS
+Dica 1
+
+Como guardar quem está logado no front-end?
+
+Pesquise:
+
+estado de autenticação react
+
+Dica 2
+
+Como gerar vários checkboxes a partir de um número (quantidade de aulas)?
+
+Pesquise:
+
+Array.from length javascript
+
+Dica 3
+
+Como impedir acesso sem login?
+
+Pesquise:
+
+rota protegida middleware express
+
+👑 BOSS CHALLENGE
+
+Após concluir a missão principal:
+
+Nível 1
+
+Criar senha criptografada (não salvar senha em texto puro).
+
+Nível 2
+
+Criar diferentes perfis de acesso (professor e coordenador).
+
+Nível 3
+
+Permitir que o coordenador veja a chamada de todas as disciplinas.
+
+Nível 4
+
+Registrar um log de quem fez login e quando.
+
+🎮 SISTEMA DE XP
+Atividade	XPFront-End concluído	+100
+Back-End concluído	+100
+Banco concluído	+100
+QA concluído	+50
+Apresentação	+50
+Boss Challenge	+100
+🏆 XP Total
+
+500 XP
+
+🚀 SIDE QUESTS (PARA GRUPOS RÁPIDOS)
+Side Quest 1
+
+Criar tela de "esqueci minha senha".
+
+Side Quest 2
+
+Mostrar o nome do professor logado no topo do sistema.
+
+Side Quest 3
+
+Criar botão de logout.
+
+Side Quest 4
+
+Bloquear tentativas de login após várias senhas erradas.
+
+Side Quest 5
+
+Mostrar histórico de chamadas feitas pelo professor.
+
+🎤 APRESENTAÇÃO FINAL
+
+Cada Squad terá:
+
+3 minutos
+
+Para explicar:
+
+Como funciona o login?
+Como o professor é vinculado à disciplina?
+Como o checkbox por aula representa a falta?
+Qual foi a principal dificuldade?
+Como resolveram o problema?
+📊 MENÇÃO DA MISSÃO
+🏆 MB
+
+Missão completa + Boss Challenge
+
+✅ B
+
+Missão completa
+
+⚠️ R
+
+Missão parcialmente concluída
+
+❌ I
+
+Sem entrega
+
+📅 PREPARANDO A PRÓXIMA MISSÃO
+
+Ao final da apresentação, faça a provocação:
+
+"Agora a escola consegue cadastrar alunos, organizar turmas, registrar notas,
+controlar frequência e proteger o acesso de cada professor.
+
+Mas e os pais e os próprios alunos? Eles também deveriam conseguir consultar
+suas informações, do jeito certo, sem mexer no que não é deles."
+
+🔥 FRASE DE ABERTURA
+
+"Um sistema sem controle de acesso é uma sala de aula sem porta.
+
+Qualquer um entra, qualquer um mexe.
+
+Hoje o desafio é dar a cada professor a chave certa: a da sua própria disciplina." 🚀

@@ -1,0 +1,10 @@
+import express from 'express';
+import * as controller from '../../controllers/notaController.js';
+import { autenticar, permitir } from '../../middlewares/auth.js';
+const routes = express.Router();
+routes.use(autenticar);
+routes.get('/notas', controller.listar);
+routes.post('/notas', permitir('admin', 'professor'), controller.criar);
+routes.put('/notas/:id', permitir('admin', 'professor'), controller.editar);
+routes.delete('/notas/:id', permitir('admin', 'professor'), controller.excluir);
+export default routes;

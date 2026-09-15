@@ -1,0 +1,10 @@
+import express from 'express';
+import * as controller from '../../controllers/frequenciaController.js';
+import { autenticar, permitir } from '../../middlewares/auth.js';
+const routes = express.Router();
+routes.use(autenticar);
+routes.get('/frequencias', controller.listar);
+routes.post('/frequencias', permitir('admin', 'professor'), controller.criar);
+routes.put('/frequencias/:id', permitir('admin', 'professor'), controller.editar);
+routes.delete('/frequencias/:id', permitir('admin', 'professor'), controller.excluir);
+export default routes;
