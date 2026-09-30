@@ -74,7 +74,8 @@ describe('Missao 004 e 005 - frequencia por aula', () => {
       method: 'POST',
       body: { aluno_id, disciplina: 'Front-End', data_aula: DATA_DA_CHAMADA, plano_aula: 'Chamada de teste', numero_aula, presente: !(aluno_id === idsDosTestes[0] && numero_aula === 2) },
     }))));
-    assert.ok(respostas.every((resposta) => resposta.status === 201));
+    // 201 na primeira gravacao; 200 quando a chamada ja existia e foi reescrita.
+    assert.ok(respostas.every((resposta) => [200, 201].includes(resposta.status)));
 
     const { body } = await requisitar('/frequencias', { token: admin });
     const doDia = body.filter((registro) => registro.data_aula === DATA_DA_CHAMADA && idsDosTestes.includes(registro.aluno_id));

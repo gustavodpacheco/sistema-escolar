@@ -4,7 +4,7 @@ import {
   Tabs, TextField, Typography,
 } from '@mui/material';
 import { api } from '../api.js';
-import { Situacao } from '../components/Situacao.jsx';
+import { notaFormatada, Situacao } from '../components/Situacao.jsx';
 
 // Missao 008 - Portal do Aluno.
 // Tudo aqui e somente leitura: o token carrega o aluno_id e nenhuma tela aceita
@@ -66,7 +66,7 @@ export default function PortalAluno({ token, usuario, onSair }) {
           {aviso.texto && <Alert severity={aviso.tipo} onClose={() => setAviso({ ...aviso, texto: '' })}>{aviso.texto}</Alert>}
 
           <Grid container spacing={2}>
-            <Indicador titulo="Média geral" valor={boletim?.media !== undefined ? boletim.media.toFixed(1) : '—'} extra={<Situacao nivel={boletim?.situacao?.nivel} rotulo={boletim?.situacao?.rotulo} />} />
+            <Indicador titulo="Média geral" valor={notaFormatada(boletim?.media)} extra={<Situacao nivel={boletim?.situacao?.nivel} rotulo={boletim?.situacao?.rotulo} />} />
             <Indicador titulo="Frequência" valor={resumo ? `${resumo.percentual}%` : '—'} extra={<Situacao nivel={resumo?.classificacao?.nivel} rotulo={resumo?.classificacao?.rotulo} />} />
             <Indicador titulo="Aulas registradas" valor={resumo ? resumo.total_aulas : '—'} extra={resumo ? `${resumo.presencas} presenças · ${resumo.faltas} faltas` : ''} />
           </Grid>
@@ -137,8 +137,11 @@ function AbaNotas({ boletim }) {
           ))}
         </TableBody>
       </Table>
-      <Alert severity={boletim.situacao.nivel === 'aprovado' ? 'success' : boletim.situacao.nivel === 'recuperacao' ? 'warning' : 'error'} sx={{ mt: 2 }}>
-        Média geral {boletim.media.toFixed(1)} · {boletim.situacao.rotulo} · média da turma {Number(boletim.media_turma).toFixed(1)}
+      <Alert
+        severity={boletim.situacao.nivel === 'aprovado' ? 'success' : ['recuperacao', 'sem_dados'].includes(boletim.situacao.nivel) ? 'info' : 'error'}
+        sx={{ mt: 2 }}
+      >
+        Média geral {notaFormatada(boletim.media)} · {boletim.situacao.rotulo} · média da turma {notaFormatada(boletim.media_turma)}
       </Alert>
     </Box>
   );

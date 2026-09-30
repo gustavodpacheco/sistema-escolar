@@ -5,8 +5,9 @@ import { autenticar, permitir } from '../../middlewares/auth.js';
 
 const routes = express.Router();
 
-// Quando o React enviar um POST para /alunos, o controlador será ativado [18, 19]
-routes.get('/alunos', autenticar, alunoController.listarAlunos);
+// Missao 008: o perfil aluno nunca lista a escola inteira, so o proprio portal.
+// GET /alunos e liberado a secretaria e ao professor (a chamada e o boletim precisam da lista).
+routes.get('/alunos', autenticar, permitir('admin', 'professor'), alunoController.listarAlunos);
 routes.post('/alunos', autenticar, permitir('admin'), alunoController.cadastrarAluno);
 routes.put('/alunos/:id', autenticar, permitir('admin'), alunoController.atualizarAluno);
 routes.delete('/alunos/:id', autenticar, permitir('admin'), alunoController.excluirAluno);

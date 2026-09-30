@@ -53,7 +53,7 @@ export async function login(req, res) {
     return res.status(401).json({ erro: 'Aluno ou senha invalidos.' });
   }
 
-  const payload = { id: conta.id, nome: aluno.nome, email: conta.email, perfil: 'aluno', aluno_id: aluno.id, disciplinas: [] };
+  const payload = { id: conta.id, nome: aluno.nome, email: conta.email, perfil: 'aluno', aluno_id: aluno.id, disciplinas: [], tv: Number(conta.token_version || 0) };
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
   await registrarAuditoria(eventoDoUsuario({ ...payload, id: conta.id }, { operacao: 'LOGIN_SUCESSO', recurso: 'PORTAL_ALUNO' }));
   return res.json({ token, usuario: payload });
@@ -130,8 +130,15 @@ export async function alterarSenha(req, res) {
     );
     return res.status(401).json({ erro: 'Senha atual incorreta.' });
   }
+  // Recusar a senha atual como "nova": parece uma troca bem-sucedida e deixa o
+  // aluno achando que protegeu a conta, sem nenhum efeito.
+  if (senha_atual === String(nova_senha)) {
+    return res.status(400).json({ erro: 'A nova senha deve ser diferente da senha atual.' });
+  }
 
-  await conta.update({ senha: await bcrypt.hash(String(nova_senha), 10) });
+  // Incrementar `token_version` derruba os tokens ja emitidos (inclusive o desta
+  // sessao): o aluno precisa entrar de novo com a senha nova.
+  await conta.update({ senha: await bcrypt.hash(String(nova_senha), 10), token_version: Number(conta.token_version || 0) + 1 });
   await registrarAuditoria(
     eventoDoUsuario(req.usuario, { operacao: 'EDICAO', recurso: 'SENHA_ALUNO', recurso_id: conta.id, detalhes: { motivo: 'troca_de_senha_pelo_aluno' } })
   );

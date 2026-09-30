@@ -7,6 +7,10 @@ export const LIMITE_ATENCAO = 75;
 
 const arredondar = (valor) => Math.round(Number(valor) * 10) / 10;
 
+// `presente` chega do MySQL como TINYINT, mas o driver pode devolver string. Sem
+// normalizar, o valor '0' seria truthy e toda falta contaria como presenca.
+export const presente = (registro) => Number(registro?.presente) === 1;
+
 // Missao 004: percentual de frequencia e classificacao por faixas.
 // Missao 005: a falta e registrada por aula (numero_aula), nao por dia.
 export function classificarFrequencia(percentual) {
@@ -18,7 +22,7 @@ export function classificarFrequencia(percentual) {
 export function resumoDeFrequencia(registros) {
   const lista = Array.isArray(registros) ? registros : [];
   const totalAulas = lista.length;
-  const presencas = lista.filter((registro) => registro.presente).length;
+  const presencas = lista.filter(presente).length;
   const faltas = totalAulas - presencas;
   const percentual = totalAulas ? arredondar((presencas / totalAulas) * 100) : 0;
   return {
@@ -39,8 +43,9 @@ export async function frequenciaDoAluno(alunoId) {
 }
 
 // Missao 004 (boss): ranking de frequencia e lista de alunos em risco (< 75%).
-export async function painelDeFrequencia({ turma_id, disciplina } = {}) {
-  const where = {};
+// `where` recebe o escopo de disciplina do professor (Missao 005).
+export async function painelDeFrequencia({ turma_id, disciplina, where: escopo = {} } = {}) {
+  const where = { ...escopo };
   if (turma_id) where.turma_id = Number(turma_id);
   if (disciplina) where.disciplina = disciplina;
 
@@ -90,7 +95,7 @@ export function agruparChamadas(registros) {
   return [...grouped.values()].map((chamada) => ({
     ...chamada,
     quantidade_aulas: new Set(chamada.registros.map((registro) => registro.numero_aula)).size,
-    presencas: chamada.registros.filter((registro) => registro.presente).length,
-    faltas: chamada.registros.filter((registro) => !registro.presente).length,
+    presencas: chamada.registros.filter(presente).length,
+    faltas: chamada.registros.filter((registro) => !presente(registro)).length,
   }));
 }

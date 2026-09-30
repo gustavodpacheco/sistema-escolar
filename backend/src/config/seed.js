@@ -11,8 +11,17 @@ import Frequencia from '../models/Frequencia.js';
 const contasDemo = [
   { nome: 'Administrador', email: 'admin@escola.com', perfil: 'admin', disciplinas: [] },
   { nome: 'Professora Ana', email: 'ana@escola.com', perfil: 'professor', disciplinas: ['Matemática', 'Front-End'] },
-  { nome: 'Carlos Silva', email: 'carlos@escola.com', perfil: 'aluno', disciplinas: [], aluno: { nome: 'Carlos Silva', email: 'carlos@aluno.com', data_nascimento: '2008-03-12', serie: '3º DS' } },
-  { nome: 'Marina Souza', email: 'marina@escola.com', perfil: 'aluno', disciplinas: [], aluno: { nome: 'Marina Souza', email: 'marina@aluno.com', data_nascimento: '2008-07-30', serie: '3º DS' } },
+  { nome: 'Carlos Silva', email: 'carlos@escola.com', perfil: 'aluno', disciplinas: [], aluno: { nome: 'Carlos Silva', email: 'carlos@aluno.com', data_nascimento: '2008-03-12', serie: '3º DS', cpf: '12345678901', telefone: '(11) 98888-0001', endereco: 'Rua das Acácias, 45' } },
+  { nome: 'Marina Souza', email: 'marina@escola.com', perfil: 'aluno', disciplinas: [], aluno: { nome: 'Marina Souza', email: 'marina@aluno.com', data_nascimento: '2008-07-30', serie: '3º DS', cpf: '12345678902', telefone: '(11) 98888-0002', endereco: 'Avenida Sete de Setembro, 1200' } },
+];
+
+// Missao 001: o cadastro precisa de pelo menos cinco alunos. Estes tres nao tem
+// conta de portal de proposito: servem para a chamada e o boletim terem um roster
+// com mais de dois nomes, e mostram que o cadastro existe sem acesso ao portal.
+const alunosDoCadastro = [
+  { nome: 'Bruno Costa', email: 'bruno@aluno.com', data_nascimento: '2008-01-25', serie: '3º DS', cpf: '12345678903', telefone: '(11) 97777-0003', endereco: 'Travessa São Jorge, 88' },
+  { nome: 'Daniela Alves', email: 'daniela@aluno.com', data_nascimento: '2008-09-08', serie: '3º DS', cpf: '12345678904', telefone: '(11) 96666-0004', endereco: 'Rua Barão de Itapetininga, 310' },
+  { nome: 'Enzo Ribeiro', email: 'enzo@aluno.com', data_nascimento: '2008-11-19', serie: '3º DS', cpf: '12345678905', telefone: '(11) 95555-0005', endereco: 'Rua Harmonia, 77' },
 ];
 
 function hashDaSenhaDemo() {
@@ -37,14 +46,47 @@ export async function criarUsuariosIniciais() {
   }
 
   if (criadas.length) console.log(`Usuarios iniciais criados: ${criadas.join(', ')} (senha ${process.env.SEED_PASSWORD || '123456'}).`);
+  await garantirAlunosDoCadastro();
   if (process.env.SEED_DADOS_DEMO !== 'false') await criarDadosAcademicosDemo();
+  await listarAlunosNoConsole();
+}
+
+// Missao 001: garante os cinco alunos do cadastro e completa os dados pessoais
+// opcionais dos que ja existiam de uma execucao anterior.
+async function garantirAlunosDoCadastro() {
+  for (const dados of alunosDoCadastro) {
+    let aluno = await Aluno.findOne({ where: { email: dados.email } });
+    if (!aluno) {
+      await Aluno.create(dados);
+      continue;
+    }
+    const faltando = Object.fromEntries(Object.entries(dados).filter(([campo, valor]) => campo !== 'email' && !aluno[campo]));
+    if (Object.keys(faltando).length) await aluno.update(faltando);
+  }
+}
+
+// A missao pede que os alunos aparecam no console apos o seed.
+async function listarAlunosNoConsole() {
+  const alunos = await Aluno.findAll({ order: [['id', 'ASC']] });
+  console.log(`\nAlunos cadastrados (${alunos.length}):`);
+  for (const aluno of alunos) {
+    const contato = [aluno.telefone, aluno.email].filter(Boolean).join(' · ') || 'sem contato';
+    console.log(`  #${aluno.id} ${aluno.nome} — ${aluno.serie} — ${contato}`);
+  }
+  if (alunos.length < 5) console.log(`  Aviso: a Missao 001 pede ao menos 5 alunos e hoje ha ${alunos.length}.`);
 }
 
 // Missao 008: um aluno, uma conta. O vinculo e obrigatorio e unico.
 async function vincularContaAluno(usuario, dadosAluno) {
   let aluno = usuario.aluno_id ? await Aluno.findByPk(usuario.aluno_id) : await Aluno.findOne({ where: { email: dadosAluno.email } });
-  if (!aluno) aluno = await Aluno.create(dadosAluno);
-  if (aluno.id !== usuario.aluno_id) await usuario.update({ aluno_id: aluno.id });
+  if (!aluno) {
+    await Aluno.create(dadosAluno);
+  } else {
+    // Base de demonstracao antiga pode ter o aluno sem os dados opcionais da Missao 001.
+    const faltando = Object.fromEntries(Object.entries(dadosAluno).filter(([campo, valor]) => campo !== 'email' && !aluno[campo]));
+    if (Object.keys(faltando).length) await aluno.update(faltando);
+  }
+  if (!usuario.aluno_id) await usuario.update({ aluno_id: aluno.id });
 }
 
 // Amostra academica para a demonstracao: os dois alunos do portal veem dados diferentes.
@@ -56,7 +98,9 @@ async function criarDadosAcademicosDemo() {
   if (!carlos || !marina) return;
 
   const turma = await garantirTurma('3º DS', '3º ano', new Date().getFullYear());
-  for (const aluno of [carlos, marina]) {
+  // Todos os cinco do cadastro ficam na turma para o roster da chamada ter conteudo.
+  const demais = await Aluno.findAll({ where: { email: alunosDoCadastro.map((aluno) => aluno.email) } });
+  for (const aluno of [carlos, marina, ...demais]) {
     if (!aluno.turma_id) await aluno.update({ turma_id: turma.id });
   }
 

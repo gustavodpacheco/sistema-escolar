@@ -1,6 +1,10 @@
 import { encerrarServidor, startServer } from '../src/server.js';
 import sequelize from '../src/config/database.js';
 
+// A suíte faz dezenas de logins do mesmo IP: o teto precisa ficar fora do caminho.
+process.env.LOGIN_RATE_MAX = '10000';
+process.env.API_RATE_MAX = '100000';
+
 let servidor;
 let base = '';
 

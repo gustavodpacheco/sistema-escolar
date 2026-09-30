@@ -24,7 +24,8 @@ Backend:
 
 Frontend:
 - Entrada React: frontend/src/main.jsx
-- Tela principal atual: frontend/src/App.jsx
+- Tela principal atual: frontend/src/SecureApp.jsx (importada como `App` em main.jsx)
+- Telas do portal do aluno: frontend/src/views/
 - Estilos globais: frontend/src/styles.css
 
 Regra de ouro de modularizacao:
@@ -35,7 +36,8 @@ Regra de ouro de modularizacao:
 
 ### Front-End
 Arquivos principais:
-- frontend/src/App.jsx
+- frontend/src/SecureApp.jsx (tela unica do painel da equipe)
+- frontend/src/views/ (uma tela por contexto, quando o fluxo crescer)
 
 O que alterar:
 - Criar interface para cadastro de turma (nome, serie, ano).

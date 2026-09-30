@@ -1,20 +1,31 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import { pathToFileURL } from 'node:url';
 import sequelize from './config/database.js';
 import routes from './routes/index.js';
 import './config/associations.js';
 import { aplicarMigrations } from './config/migrations.js';
 import { criarUsuariosIniciais } from './config/seed.js';
+import { limiteGeral } from './middlewares/limites.js';
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
 const DB_RETRY_DELAY_MS = Number(process.env.DB_RETRY_DELAY_MS || 5000);
 const DB_SYNC_FORCE = String(process.env.DB_SYNC_FORCE || 'false').toLowerCase() === 'true';
 
+// Missao 006: so o frontend autorizado fala com a API. O dev server do Vite roda em
+// 5173 e faz proxy de /api, entao e a origem que o navegador realmente envia.
+const origensPermitidas = (process.env.CORS_ORIGINS || 'http://localhost:5173,http://127.0.0.1:5173')
+  .split(',')
+  .map((origem) => origem.trim())
+  .filter(Boolean);
+
 // Middlewares
-app.use(cors());
-app.use(express.json());
+app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: false }));
+app.use(cors({ origin: origensPermitidas }));
+app.use(express.json({ limit: '100kb' }));
+app.use(limiteGeral);
 
 // Rotas principais do sistema. Novos modulos entram no routes/index.js.
 app.use(routes);
@@ -35,18 +46,14 @@ function delay(ms) {
 let encerrando = false;
 
 // Mantem o servidor HTTP no ar e tenta reconectar ao banco sem encerrar o processo.
+// So a conexao e retentada: uma migration quebrada e erro de codigo, nao indisponibilidade,
+// e rodar em loop esconderia o problema por sempre.
 async function connectDatabaseWithRetry() {
   while (!encerrando) {
     try {
       await sequelize.authenticate();
       console.log('Conexao com o banco de dados estabelecida com sucesso!');
-      console.log('DB_SYNC_FORCE =', DB_SYNC_FORCE);
-
-      await sequelize.sync({ force: DB_SYNC_FORCE });
-      await aplicarMigrations();
-      await criarUsuariosIniciais();
-      console.log('Banco de dados sincronizado com sucesso!');
-      return;
+      break;
     } catch (error) {
       if (encerrando) return;
       console.error('Falha ao conectar no banco. Nova tentativa em alguns segundos.');
@@ -54,6 +61,12 @@ async function connectDatabaseWithRetry() {
       await delay(DB_RETRY_DELAY_MS);
     }
   }
+
+  console.log('DB_SYNC_FORCE =', DB_SYNC_FORCE);
+  await sequelize.sync({ force: DB_SYNC_FORCE });
+  await aplicarMigrations();
+  await criarUsuariosIniciais();
+  console.log('Banco de dados sincronizado com sucesso!');
 }
 
 export async function startServer({ port = PORT } = {}) {
@@ -62,7 +75,14 @@ export async function startServer({ port = PORT } = {}) {
     console.log(`Servidor rodando em http://localhost:${port}`);
   });
 
-  await connectDatabaseWithRetry();
+  try {
+    await connectDatabaseWithRetry();
+  } catch (error) {
+    // Sem banco migrado a API responderia 500 em tudo; melhor encerrar com a causa.
+    console.error('Falha ao preparar o banco de dados:', error.message);
+    servidor.close();
+    throw error;
+  }
   return servidor;
 }
 

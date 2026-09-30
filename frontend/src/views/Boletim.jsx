@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, Box, Button, Grid, MenuItem, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from '@mui/material';
 import { api } from '../api.js';
-import { Situacao } from '../components/Situacao.jsx';
+import { notaFormatada, Situacao } from '../components/Situacao.jsx';
 
 // Missao 003 (boss challenge): mini boletim com media, maior, menor,
 // media da turma e situacao do aluno escolhido.
@@ -37,10 +37,10 @@ export default function Boletim({ token, alunos }) {
 
       {boletim?.notas.length > 0 && (
         <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Cartao titulo="Média geral" valor={boletim.media.toFixed(1)} extra={<Situacao nivel={boletim.situacao.nivel} rotulo={boletim.situacao.rotulo} />} />
-          <Cartao titulo="Maior nota" valor={Number(boletim.maior_nota).toFixed(1)} />
-          <Cartao titulo="Menor nota" valor={Number(boletim.menor_nota).toFixed(1)} />
-          <Cartao titulo="Média da turma" valor={Number(boletim.media_turma).toFixed(1)} />
+          <Cartao titulo="Média geral" valor={notaFormatada(boletim.media)} extra={<Situacao nivel={boletim.situacao.nivel} rotulo={boletim.situacao.rotulo} />} />
+          <Cartao titulo="Maior nota" valor={notaFormatada(boletim.maior_nota)} />
+          <Cartao titulo="Menor nota" valor={notaFormatada(boletim.menor_nota)} />
+          <Cartao titulo="Média da turma" valor={notaFormatada(boletim.media_turma)} />
         </Grid>
       )}
 
@@ -76,7 +76,7 @@ export default function Boletim({ token, alunos }) {
             {boletim.por_disciplina.map((item) => (
               <Paper key={item.disciplina} variant="outlined" sx={{ p: 1.5 }}>
                 <Typography variant="body2">{item.disciplina}</Typography>
-                <Typography variant="h6">{item.media.toFixed(1)}</Typography>
+                <Typography variant="h6">{notaFormatada(item.media)}</Typography>
                 <Situacao nivel={item.situacao.nivel} rotulo={item.situacao.rotulo} />
               </Paper>
             ))}
