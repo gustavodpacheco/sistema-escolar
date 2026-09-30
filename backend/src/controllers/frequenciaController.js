@@ -1,7 +1,12 @@
 import Frequencia from '../models/Frequencia.js';
+import { agruparChamadas, painelDeFrequencia } from '../services/frequenciaService.js';
 import { eventoDoUsuario, registrarAuditoria } from '../services/auditoriaService.js';
 const autorizado = (u, disciplina) => u.perfil === 'admin' || (u.disciplinas || []).includes(disciplina);
 export async function listar(req, res) { res.json(await Frequencia.findAll({ order: [['data_aula', 'DESC'], ['numero_aula', 'ASC']] })); }
+// Missao 004: percentual, classificacao, ranking de frequencia e alunos em risco.
+export async function painel(req, res) { res.json(await painelDeFrequencia({ turma_id: req.query.turma_id, disciplina: req.query.disciplina })); }
+// Missao 005: historico de chamadas agrupado por data e disciplina.
+export async function historico(req, res) { res.json(agruparChamadas(await Frequencia.findAll({ order: [['data_aula', 'DESC'], ['numero_aula', 'ASC']] }))); }
 export async function criar(req, res) {
   const { aluno_id, disciplina, data_aula, numero_aula, presente } = req.body;
   if (!aluno_id || !disciplina || !data_aula || numero_aula === undefined || presente === undefined) return res.status(400).json({ erro: 'Dados da frequencia incompletos.' });

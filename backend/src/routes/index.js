@@ -1,6 +1,7 @@
 import express from 'express';
 
 import alunosRoutes from './alunos/routes.js';
+import alunoPortalRoutes from './alunoPortal/routes.js';
 import turmasRoutes from './turmas/routes.js';
 import authRoutes from './auth/routes.js';
 import notasRoutes from './notas/routes.js';
@@ -10,6 +11,7 @@ import auditoriaRoutes from './auditoria/routes.js';
 const routes = express.Router();
 
 routes.use(alunosRoutes);
+routes.use(alunoPortalRoutes);
 routes.use(turmasRoutes);
 routes.use(authRoutes);
 routes.use(notasRoutes);

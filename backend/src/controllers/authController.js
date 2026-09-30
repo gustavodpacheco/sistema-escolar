@@ -13,6 +13,12 @@ export async function login(req, res) {
     await registrarAuditoria(eventoDoUsuario(usuario, { usuario_nome: email, operacao: 'LOGIN_RECUSADO', recurso: 'AUTENTICACAO', detalhes: { motivo: 'credenciais_invalidas' } }));
     return res.status(401).json({ erro: 'E-mail ou senha invalidos.' });
   }
+  // Missao 008: cada perfil tem sua propria entrada. A conta de aluno usa /alunos/login,
+  // que devolve o aluno_id; aqui recusamos para nao gerar token sem vinculo de aluno.
+  if (usuario.perfil === 'aluno') {
+    await registrarAuditoria(eventoDoUsuario(usuario, { operacao: 'LOGIN_RECUSADO', recurso: 'AUTENTICACAO', detalhes: { motivo: 'conta_de_aluno_no_login_da_equipe' } }));
+    return res.status(401).json({ erro: 'Use o portal do aluno para entrar com esta conta.' });
+  }
   const payload = { id: usuario.id, nome: usuario.nome, email: usuario.email, perfil: usuario.perfil, disciplinas: usuario.disciplinas || [] };
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
   await registrarAuditoria(eventoDoUsuario(payload, { operacao: 'LOGIN_SUCESSO', recurso: 'AUTENTICACAO' }));

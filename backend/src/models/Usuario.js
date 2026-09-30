@@ -9,6 +9,7 @@ Usuario.init({
   senha: { type: DataTypes.STRING, allowNull: false },
   perfil: { type: DataTypes.ENUM('admin', 'professor', 'aluno'), allowNull: false, defaultValue: 'professor' },
   disciplinas: { type: DataTypes.JSON, allowNull: false, defaultValue: [] },
+  aluno_id: { type: DataTypes.INTEGER, allowNull: true, unique: true },
 }, { sequelize, modelName: 'usuario', tableName: 'usuarios' });
 
 export default Usuario;

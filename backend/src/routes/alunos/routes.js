@@ -11,4 +11,7 @@ routes.post('/alunos', autenticar, permitir('admin'), alunoController.cadastrarA
 routes.put('/alunos/:id', autenticar, permitir('admin'), alunoController.atualizarAluno);
 routes.delete('/alunos/:id', autenticar, permitir('admin'), alunoController.excluirAluno);
 
+// Missao 008: criação/redefinição do acesso do aluno ao portal (secretaria).
+routes.post('/alunos/:id/acesso', autenticar, permitir('admin'), alunoController.definirAcesso);
+
 export default routes;

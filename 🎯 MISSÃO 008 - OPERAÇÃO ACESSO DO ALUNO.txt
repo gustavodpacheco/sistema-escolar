@@ -1,0 +1,134 @@
+DS QUEST MASTER
+Sprint 08 - Portal do Aluno: Notas e Frequência
+
+CONTEXTO
+
+O sistema já permite que a escola cadastre alunos, lance notas e registre
+frequência. Porém, o aluno ainda não possui uma conta própria para acompanhar
+seu desempenho.
+
+Agora a direção solicita um acesso individual:
+
+"Cada aluno deve entrar com seu usuário e senha e consultar somente suas
+próprias notas e sua própria frequência."
+
+Nesta sprint, o Squad atuará como equipe de experiência do aluno e controle de
+acesso por identidade.
+
+MISSÃO
+
+Criar o portal autenticado do aluno. O sistema deverá:
+
+- permitir criar ou definir credenciais para um aluno;
+- permitir login do aluno com usuário/e-mail e senha;
+- emitir token JWT com o perfil `aluno` e o `aluno_id` correspondente;
+- permitir que o aluno consulte somente suas notas;
+- permitir que o aluno consulte somente sua frequência, resumo e situação;
+- impedir que um aluno consulte ou altere dados de outro aluno;
+- manter os acessos de admin e professor funcionando;
+- registrar login aceito e recusado na auditoria sem armazenar senha ou token.
+
+RESPONSABILIDADES DO SQUAD
+
+DESENVOLVEDOR FRONT-END
+
+Criar o fluxo de acesso do aluno:
+
+- tela de login com identificação do aluno e senha;
+- indicação clara de erro para credenciais inválidas;
+- área inicial mostrando nome e turma do aluno;
+- tela ou abas de "Minhas notas" e "Minha frequência";
+- tabela de notas com disciplina, bimestre, nota e situação;
+- resumo de frequência com total de aulas, presenças, faltas e percentual;
+- mensagem clara quando ainda não houver notas ou registros de frequência;
+- botão de sair e limpeza do token da sessão;
+- esconder menus administrativos, cadastro, edição e exclusão para o perfil aluno.
+
+DESENVOLVEDOR BACK-END
+
+Criar autenticação e autorização específicas do aluno.
+
+Rotas sugeridas:
+
+POST /alunos/login
+GET /aluno/notas
+GET /aluno/frequencia
+GET /aluno/frequencia/resumo
+
+As rotas do portal devem:
+
+- exigir token JWT válido;
+- exigir o perfil `aluno`;
+- usar o `aluno_id` contido no token, ignorando um ID enviado pelo cliente;
+- retornar somente registros associados ao aluno autenticado;
+- ser somente leitura para o aluno;
+- não permitir cadastro, edição ou exclusão de notas e frequências pelo aluno;
+- responder 401 sem token, 403 para outro perfil e 404/403 quando o recurso não
+  existir para o aluno;
+- registrar sucessos e recusas de login na auditoria.
+
+DESENVOLVEDOR BANCO DE DADOS
+
+Definir como as credenciais serão vinculadas ao aluno. Opções válidas:
+
+- adicionar `usuario_login` e `senha` hash na tabela `alunos`; ou
+- criar uma conta em `usuarios` com `aluno_id` e manter a senha fora do modelo
+  de dados acadêmico.
+
+A decisão deve garantir:
+
+- login único por aluno;
+- senha nunca armazenada em texto puro;
+- vínculo obrigatório entre conta e aluno;
+- possibilidade de redefinir a senha sem alterar notas ou frequência;
+- índice/unique para o identificador de login.
+
+Não armazenar senha, token JWT ou senha informada nos registros de auditoria.
+
+QA
+
+Criar checklist e testes automatizados para:
+
+- login de aluno válido retorna token com perfil `aluno` e `aluno_id`;
+- senha incorreta e aluno inexistente retornam 401;
+- aluno sem token recebe 401;
+- professor ou admin tentando acessar o portal do aluno recebe 403;
+- aluno recebe suas próprias notas;
+- aluno recebe sua própria frequência e resumo;
+- aluno não recebe notas ou frequência de outro aluno;
+- parâmetros de aluno enviados pelo cliente não alteram o escopo do token;
+- aluno não consegue criar, editar ou excluir notas/frequências;
+- login aceito e recusado geram auditoria sem senha ou token;
+- admin e professor continuam autenticando e usando seus fluxos atuais.
+
+SCRUM MASTER
+
+- definir se o login será por e-mail ou usuário escolar;
+- registrar a decisão de modelagem das credenciais;
+- preparar demonstração com dois alunos e dados diferentes;
+- demonstrar o bloqueio ao tentar trocar o ID na URL ou query;
+- registrar riscos de recuperação de senha e exposição de dados acadêmicos.
+
+CRITÉRIOS DE VITÓRIA
+
+- existe login funcional para aluno;
+- o token identifica o aluno autenticado;
+- o portal mostra notas e frequência somente do próprio aluno;
+- aluno não acessa telas nem operações administrativas;
+- respostas 401 e 403 estão testadas;
+- senhas são armazenadas somente com hash;
+- nenhum segredo aparece na auditoria, API ou interface;
+- admin, professor e auditoria continuam funcionando.
+
+BOSS CHALLENGE
+
+Criar uma opção segura de alteração de senha pelo aluno, exigindo a senha
+atual, confirmação da nova senha e registro da operação na auditoria sem
+armazenar qualquer valor de senha.
+
+PERGUNTAS PARA DISCUSSÃO
+
+1. Por que o backend não deve confiar no `aluno_id` enviado pelo frontend?
+2. Qual é a diferença entre o perfil do token e a identidade do aluno?
+3. Por que uma senha hash ainda não deve aparecer na auditoria?
+4. Como testar que dois alunos nunca veem os dados acadêmicos um do outro?
